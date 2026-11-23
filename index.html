@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AcordosHub — Painel de Indicadores, Acordos Totais e Pagos em Dia</title>
+  <meta name="description" content="Site de indicadores para acompanhamento de acordos conectado ao Google Sheets, com importação de arquivos .xlsx e .csv e relatórios de acordos totais e acordos pagos em dia." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Sticky Dark Glass Header -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <path d="m9 15 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">AcordosHub</h1>
+          <p class="brand-subtitle" id="sheetSubtitle">Gestão de Acordos, Planilhas e Relatórios</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="sync-pill" id="syncPill" title="Status da sincronização">
+          <span class="sync-dot"></span>
+          <span id="syncPillText">Modo Demonstração</span>
+        </div>
+
+        <button type="button" class="btn btn-topbar-dark" id="btnSyncNow" title="Atualizar dados da planilha agora">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+          </svg>
+          Sincronizar
+        </button>
+
+        <button type="button" class="btn btn-topbar-dark" id="btnOpenConnect">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M9 21V9"/>
+          </svg>
+          Google Sheets
+        </button>
+
+        <button type="button" class="btn btn-primary" id="btnNewAgreement">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Novo Acordo
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <!-- Presentation Hero Screen (Bold Red-Orange & Black Gradient) -->
+    <section class="hero-stage" aria-label="Tela de apresentação e resumo executivo">
+      <div class="hero-grid">
+        <div>
+          <span class="hero-eyebrow">Central Executiva de Acompanhamento</span>
+          <h2 class="hero-title">Indicadores de Acordos em Tempo Real</h2>
+          <p class="hero-desc" id="heroDesc">
+            Acompanhe seus acordos com sincronização direta à planilha Google, importação imediata de arquivos <strong>.XLSX</strong> e <strong>.CSV</strong>, e relatórios dedicados de <strong>Acordos Totais</strong> e <strong>Acordos Pagos em Dia</strong>.
+          </p>
+          <div class="hero-cta-row">
+            <button type="button" class="btn btn-hero-light" id="btnHeroNew">+ Incluir Novo Acordo</button>
+            <button type="button" class="btn btn-hero-ghost" id="btnHeroReportTotal">Relatório de Acordos Totais</button>
+            <button type="button" class="btn btn-hero-ghost" id="btnHeroReportOnTime">Relatório Pagos em Dia</button>
+            <button type="button" class="btn btn-hero-ghost" id="btnBannerConnect">Conectar Planilha Google</button>
+          </div>
+        </div>
+
+        <div class="hero-metrics-panel" id="heroMetricsPanel">
+          <!-- Populated dynamically by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 1: Central de Arquivos (.XLSX e .CSV) e Relatórios (Acordos Totais & Pagos em Dia) -->
+    <section aria-labelledby="hubHeading">
+      <div class="section-header-dark">
+        <div>
+          <h2 class="section-title-light" id="hubHeading">Importação de Arquivos (.XLSX e .CSV) &amp; Central de Relatórios</h2>
+          <p class="section-hint-light">Insira planilhas Excel (.xlsx), arquivos .csv ou gere/carregue relatórios de Acordos Totais e Acordos Pagos em Dia</p>
+        </div>
+        <span class="section-hint-light" id="lastUpdatedLabel">Atualizado agora</span>
+      </div>
+
+      <!-- Row 1: Dedicated XLSX & CSV Upload Fields -->
+      <div class="hub-grid" style="margin-bottom:18px;">
+        <!-- Campo .XLSX -->
+        <article class="upload-card">
+          <div class="upload-head">
+            <div class="upload-title-wrap">
+              <span class="format-badge format-xlsx">.XLSX</span>
+              <div>
+                <h3 class="section-title">Inserir Planilha Excel (.xlsx)</h3>
+                <p class="section-hint">Leitura nativa com suporte a múltiplas abas e datas Excel</p>
+              </div>
+            </div>
+          </div>
+
+          <label class="dropzone" id="dropzoneXlsx" for="xlsxFileInput">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span class="dropzone-main">Clique para escolher ou arraste um arquivo .xlsx aqui</span>
+            <span class="dropzone-sub">Atualiza automaticamente todos os indicadores, gráficos e relatórios</span>
+            <input type="file" id="xlsxFileInput" accept=".xlsx" hidden />
+          </label>
+
+          <div class="file-status-row" id="xlsxStatusRow">
+            <span id="xlsxFileLabel">Nenhum arquivo .xlsx inserido</span>
+            <select id="xlsxSheetSelector" class="select" style="width:auto; min-width:150px; padding:5px 10px; display:none;" aria-label="Selecionar aba do Excel"></select>
+          </div>
+        </article>
+
+        <!-- Campo .CSV -->
+        <article class="upload-card">
+          <div class="upload-head">
+            <div class="upload-title-wrap">
+              <span class="format-badge format-csv">.CSV</span>
+              <div>
+                <h3 class="section-title">Inserir Arquivo CSV (.csv)</h3>
+                <p class="section-hint">Detecta automaticamente separadores (; , ou TAB) e UTF-8</p>
+              </div>
+            </div>
+          </div>
+
+          <label class="dropzone" id="dropzoneCsv" for="csvFileInput">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
+            <span class="dropzone-main">Clique para escolher ou arraste um arquivo .csv aqui</span>
+            <span class="dropzone-sub">Compatível com exportações do Google Sheets e Excel Brasil (;)</span>
+            <input type="file" id="csvFileInput" accept=".csv,.tsv,.txt" hidden />
+          </label>
+
+          <div class="file-status-row">
+            <span id="csvFileLabel">Nenhum arquivo .csv inserido</span>
+            <button type="button" class="btn btn-secondary" id="btnResetDemoQuick" style="padding:5px 10px; font-size:12px;">Usar Base Exemplo</button>
+          </div>
+        </article>
+      </div>
+
+      <!-- Row 2: Dedicated Reports (Acordos Totais & Acordos Pagos em Dia) -->
+      <div class="hub-grid">
+        <!-- Relatório de Acordos Totais -->
+        <article class="report-card">
+          <div class="report-card-accent" style="background:linear-gradient(90deg, #dc2626, #f97316);"></div>
+          <div class="upload-head">
+            <div class="upload-title-wrap">
+              <span class="format-badge format-total">TOTAIS</span>
+              <div>
+                <h3 class="section-title">Relatório de Acordos Totais</h3>
+                <p class="section-hint" id="reportTotalSource">Fonte: Base principal consolidada</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-metrics-row" id="reportTotalMetrics">
+            <!-- JS populated -->
+          </div>
+
+          <div class="report-upload-inline">
+            <span><strong>Anexar relatório específico (.xlsx / .csv):</strong></span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label class="btn btn-secondary" style="padding:6px 11px; font-size:12px; cursor:pointer;">
+                Inserir Arquivo
+                <input type="file" id="reportTotalFileInput" accept=".xlsx,.csv,.tsv,.txt" hidden />
+              </label>
+              <button type="button" class="btn btn-secondary" id="btnClearReportTotalFile" style="padding:6px 10px; font-size:12px; display:none;">Usar Base Geral</button>
+            </div>
+          </div>
+
+          <div class="report-actions">
+            <button type="button" class="btn btn-primary" id="btnViewReportTotal">Abrir Relatório Completo</button>
+            <button type="button" class="btn btn-emerald" id="btnDownloadTotalXlsx">Baixar .XLSX</button>
+            <button type="button" class="btn btn-secondary" id="btnDownloadTotalCsv">Baixar .CSV</button>
+          </div>
+        </article>
+
+        <!-- Relatório de Acordos Pagos em Dia -->
+        <article class="report-card">
+          <div class="report-card-accent" style="background:linear-gradient(90deg, #059669, #10b981);"></div>
+          <div class="upload-head">
+            <div class="upload-title-wrap">
+              <span class="format-badge format-ontime">EM DIA</span>
+              <div>
+                <h3 class="section-title">Relatório de Acordos Pagos em Dia</h3>
+                <p class="section-hint" id="reportOnTimeSource">Fonte: Filtrado automaticamente da base principal</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-metrics-row" id="reportOnTimeMetrics">
+            <!-- JS populated -->
+          </div>
+
+          <div class="kpi-progress-track" style="height:8px;">
+            <div class="kpi-progress-fill" id="onTimeProgressBar" style="width:0%; background:linear-gradient(90deg, #059669, #10b981);"></div>
+          </div>
+
+          <div class="report-upload-inline">
+            <span><strong>Anexar relatório de Pagos em Dia (.xlsx / .csv):</strong></span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label class="btn btn-secondary" style="padding:6px 11px; font-size:12px; cursor:pointer;">
+                Inserir Arquivo
+                <input type="file" id="reportOnTimeFileInput" accept=".xlsx,.csv,.tsv,.txt" hidden />
+              </label>
+              <button type="button" class="btn btn-secondary" id="btnClearReportOnTimeFile" style="padding:6px 10px; font-size:12px; display:none;">Voltar ao Automático</button>
+            </div>
+          </div>
+
+          <div class="report-actions">
+            <button type="button" class="btn btn-emerald" id="btnViewReportOnTime">Abrir Relatório Pagos em Dia</button>
+            <button type="button" class="btn btn-secondary" id="btnDownloadOnTimeXlsx">Baixar .XLSX</button>
+            <button type="button" class="btn btn-secondary" id="btnDownloadOnTimeCsv">Baixar .CSV</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Section 2: KPI Indicators -->
+    <section aria-labelledby="kpiHeading">
+      <div class="section-header-dark">
+        <div>
+          <h2 class="section-title-light" id="kpiHeading">Indicadores de Desempenho dos Acordos</h2>
+          <p class="section-hint-light">Métricas recalculadas em tempo real conforme os filtros ativos e os dados importados</p>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="kpiGrid"></div>
+    </section>
+
+    <!-- Section 3: Visual Analytics -->
+    <section aria-labelledby="chartsHeading">
+      <div class="section-header-dark">
+        <div>
+          <h2 class="section-title-light" id="chartsHeading">Visão Analítica</h2>
+          <p class="section-hint-light">Clique em qualquer status na legenda do gráfico para filtrar os registros da tabela</p>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <article class="card">
+          <div class="card-head">
+            <h3 class="card-title">Distribuição por Status</h3>
+            <span class="card-tag" id="tagStatusCount">0 acordos</span>
+          </div>
+          <div id="chartStatusDonut"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <h3 class="card-title">Valor por Categoria</h3>
+            <span class="card-tag">Consolidado (R$)</span>
+          </div>
+          <div id="chartCategoryBars"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <h3 class="card-title">Evolução Mensal</h3>
+            <span class="card-tag">Novos acordos/mês</span>
+          </div>
+          <div id="chartMonthly"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Section 4: Filters -->
+    <section class="filters-card" aria-labelledby="filtersHeading">
+      <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div>
+          <h2 class="section-title" id="filtersHeading">Filtros de Consulta</h2>
+          <p class="section-hint">Combine busca textual, status, situação de pagamento, categoria, responsável e janela de prazos</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary" id="btnClearFilters">Limpar Filtros</button>
+          <button type="button" class="btn btn-emerald" id="btnExportXlsx">Exportar .XLSX</button>
+          <button type="button" class="btn btn-secondary" id="btnExportCsv">Exportar .CSV</button>
+        </div>
+      </div>
+
+      <div class="filters-row">
+        <div class="field-group">
+          <label class="field-label" for="filterSearch">Busca Livre</label>
+          <input type="search" id="filterSearch" class="input" placeholder="Código, parte, objeto, responsável..." />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filterStatus">Status</label>
+          <select id="filterStatus" class="select"><option value="">Todos os status</option></select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filterPayment">Situação Pagamento</label>
+          <select id="filterPayment" class="select"><option value="">Todas as situações</option></select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filterCategory">Categoria</label>
+          <select id="filterCategory" class="select"><option value="">Todas as categorias</option></select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filterOwner">Responsável</label>
+          <select id="filterOwner" class="select"><option value="">Todos os responsáveis</option></select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="filterDateFrom">Prazo a partir de</label>
+          <input type="date" id="filterDateFrom" class="input" />
+        </div>
+      </div>
+
+      <div class="quick-chips-bar">
+        <div class="chips-group" id="quickChips">
+          <button type="button" class="chip active" data-quick="all">Todos</button>
+          <button type="button" class="chip" data-quick="ontime">Pagos em Dia</button>
+          <button type="button" class="chip" data-quick="due30">Vencem em 30 dias</button>
+          <button type="button" class="chip" data-quick="overdue">Atrasados</button>
+          <button type="button" class="chip" data-quick="highvalue">Alto Valor (&ge; R$ 100 mil)</button>
+          <button type="button" class="chip" data-quick="completed">Concluídos</button>
+        </div>
+
+        <div class="field-group" style="flex-direction:row; align-items:center; gap:8px;">
+          <label class="field-label" for="filterDateTo" style="margin:0;">Prazo até:</label>
+          <input type="date" id="filterDateTo" class="input" style="width:155px; padding:6px 10px;" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Data Table -->
+    <section class="table-card" aria-labelledby="tableHeading">
+      <div class="table-toolbar">
+        <div>
+          <h2 class="section-title" id="tableHeading">Base de Acordos</h2>
+          <div class="table-count" id="tableCount">Exibindo <strong>0</strong> de <strong>0</strong> acordos</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-danger" id="btnDeleteSelected" style="display:none;">
+            Excluir Selecionados (<span id="selectedCount">0</span>)
+          </button>
+          <button type="button" class="btn btn-primary" id="btnTableNew">+ Incluir Acordo</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="data-table" id="agreementsTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal 1: Add Agreement -->
+  <div class="modal-backdrop" id="modalAdd" role="dialog" aria-modal="true" aria-labelledby="modalAddTitle">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 class="modal-title" id="modalAddTitle">Incluir Novo Acordo</h3>
+        <button type="button" class="btn-icon" data-close-modal="modalAdd" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="formAddAgreement">
+        <div class="modal-body" id="dynamicFormFields"></div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-secondary" data-close-modal="modalAdd">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Revisar e Confirmar Inclusão</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Action Confirmation (No Password) -->
+  <div class="modal-backdrop" id="modalConfirmAction" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="modal-dialog compact">
+      <div class="modal-head">
+        <h3 class="modal-title" id="confirmModalTitle">Confirmar Operação</h3>
+        <button type="button" class="btn-icon" data-close-modal="modalConfirmAction" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="formConfirmAction">
+        <div class="modal-body">
+          <div class="confirm-summary" id="confirmSummaryBox"></div>
+          <div class="error-msg" id="confirmActionError"></div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-secondary" data-close-modal="modalConfirmAction">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnConfirmAction">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Executive Report Viewer (Totais / Pagos em Dia) -->
+  <div class="modal-backdrop" id="modalReport" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+    <div class="modal-dialog xl">
+      <div class="modal-head">
+        <h3 class="modal-title" id="reportModalTitle">Relatório Gerencial</h3>
+        <button type="button" class="btn-icon" data-close-modal="modalReport" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="modal-body" id="reportModalBody"></div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" id="btnPrintReport">Imprimir / Salvar PDF</button>
+        <button type="button" class="btn btn-emerald" id="btnModalReportXlsx">Baixar .XLSX</button>
+        <button type="button" class="btn btn-secondary" id="btnModalReportCsv">Baixar .CSV</button>
+        <button type="button" class="btn btn-primary" data-close-modal="modalReport">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Connect Google Sheets -->
+  <div class="modal-backdrop" id="modalConnect" role="dialog" aria-modal="true" aria-labelledby="connectTitle">
+    <div class="modal-dialog wide">
+      <div class="modal-head">
+        <h3 class="modal-title" id="connectTitle">Conectar Planilha Google em Tempo Real</h3>
+        <button type="button" class="btn-icon" data-close-modal="modalConnect" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid-2">
+          <div class="field-group">
+            <label class="field-label" for="cfgSheetId">ID da Planilha Google</label>
+            <input type="text" id="cfgSheetId" class="input" />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="cfgSheetGid">GID da Aba</label>
+            <input type="text" id="cfgSheetGid" class="input" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="cfgAppsScriptUrl">URL do Google Apps Script Web App (Leitura + Inclusão + Exclusão)</label>
+          <input type="url" id="cfgAppsScriptUrl" class="input" placeholder="https://script.google.com/macros/s/.../exec" />
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field-group">
+            <label class="field-label" for="cfgSyncInterval">Atualização Automática</label>
+            <select id="cfgSyncInterval" class="select">
+              <option value="0">Manual</option>
+              <option value="15">A cada 15 segundos</option>
+              <option value="30" selected>A cada 30 segundos</option>
+              <option value="60">A cada 1 minuto</option>
+              <option value="300">A cada 5 minutos</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="cfgConnectionMode">Modo de Sincronização</label>
+            <select id="cfgConnectionMode" class="select">
+              <option value="apps_script">Apps Script (Bidirecional — Privado)</option>
+              <option value="public_csv">Planilha Pública / Publicada na Web (Somente Leitura)</option>
+              <option value="demo">Dados Locais / Demonstração</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border-subtle); padding-top:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;">
+            <strong style="font-size:13px;">Passo a passo rápido (Google Apps Script — 2 minutos):</strong>
+            <button type="button" class="btn btn-emerald" id="btnCopyAppsScript" style="padding:6px 12px; font-size:12px;">Copiar Código Code.gs</button>
+          </div>
+          <ol style="margin:0 0 10px 18px; padding:0; font-size:12.5px; color:var(--text-secondary); line-height:1.6;">
+            <li>Abra sua planilha (<a href="https://docs.google.com/spreadsheets/d/1FXKNHPd_YwR2C-zSDaXlFiH3EMEjM5GvDcv8ykW8gK8/edit?gid=2121317474#gid=2121317474" target="_blank" rel="noopener">link direto</a>) e acesse <strong>Extensões &gt; Apps Script</strong>.</li>
+            <li>Cole o código de <code>apps-script/Code.gs</code> e clique em <strong>Implantar &gt; Nova implantação &gt; App da Web</strong>.</li>
+            <li>Escolha <em>Executar como: Eu</em> e <em>Quem pode acessar: Qualquer pessoa</em>.</li>
+            <li>Cole a URL gerada (<code>.../exec</code>) acima e clique em <strong>Salvar e Sincronizar</strong>.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-secondary" id="btnResetDemo">Restaurar Demonstração</button>
+        <button type="button" class="btn btn-secondary" data-close-modal="modalConnect">Fechar</button>
+        <button type="button" class="btn btn-primary" id="btnSaveConnection">Salvar e Sincronizar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Stack -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script src="xlsx-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
